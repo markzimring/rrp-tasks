@@ -19,6 +19,7 @@
   --gray-bg:#F1EFE8;--gray-tx:#5F5E5A;
   --coral-bg:#FAECE7;--coral-tx:#993C1D;
   --red-bg:#FCEBEB;--red-tx:#A32D2D;
+  --teal-bg:#E1F5EE;--teal-tx:#085041;
   --success:#1D9E75;
 }
 @media(prefers-color-scheme:dark){:root{
@@ -32,6 +33,7 @@
   --gray-bg:#2c2c2a;--gray-tx:#B4B2A9;
   --coral-bg:#4a1b0c;--coral-tx:#F0997B;
   --red-bg:#3d1010;--red-tx:#F09595;
+  --teal-bg:#085041;--teal-tx:#9FE1CB;
 }}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;}
 .app{max-width:1020px;margin:0 auto;padding:1.5rem 1rem 4rem;}
@@ -73,12 +75,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .task-note{font-size:11px;color:var(--text2);font-style:italic;margin-top:4px;line-height:1.4;}
 .task-foot{display:flex;align-items:center;gap:5px;margin-top:6px;flex-wrap:wrap;}
 .tag{font-size:10px;padding:2px 7px;border-radius:99px;white-space:nowrap;}
-.tag-broker{background:var(--blue-bg);color:var(--blue-tx);}
-.tag-opco{background:var(--green-bg);color:var(--green-tx);}
-.tag-retail{background:var(--purple-bg);color:var(--purple-tx);}
-.tag-mrv{background:var(--amber-bg);color:var(--amber-tx);}
+.tag-fundraising{background:var(--purple-bg);color:var(--purple-tx);}
 .tag-palm{background:var(--coral-bg);color:var(--coral-tx);}
+.tag-tuna{background:var(--blue-bg);color:var(--blue-tx);}
+.tag-aquaculture{background:var(--teal-bg);color:var(--teal-tx);}
+.tag-cattle{background:var(--amber-bg);color:var(--amber-tx);}
+.tag-pork{background:var(--red-bg);color:var(--red-tx);}
+.tag-pipeline{background:var(--green-bg);color:var(--green-tx);}
 .tag-admin{background:var(--gray-bg);color:var(--gray-tx);}
+.tag-mrv{background:var(--blue-bg);color:var(--blue-tx);}
 .tag-rolled{background:var(--red-bg);color:var(--red-tx);}
 .task-actions{display:flex;gap:2px;flex-shrink:0;}
 .icon-btn{background:transparent;border:none;cursor:pointer;font-size:12px;color:var(--text3);padding:2px 4px;border-radius:4px;line-height:1;font-family:inherit;}
@@ -176,12 +181,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <textarea id="noteInput" placeholder="Context, blockers, details..."></textarea>
     <label class="field-label">Category</label>
     <select id="tagSelect">
-      <option value="broker">Brokerage</option>
-      <option value="opco">Operating co</option>
-      <option value="retail">Retail</option>
-      <option value="mrv">MRV</option>
+      <option value="fundraising">Fundraising/Investors</option>
       <option value="palm">Palm oil</option>
-      <option value="admin">Admin</option>
+      <option value="tuna">Tuna</option>
+      <option value="aquaculture">Aquaculture</option>
+      <option value="cattle">Cattle</option>
+      <option value="pork">Pork</option>
+      <option value="pipeline">Other pipeline</option>
+      <option value="admin">RRP Mgmt & Admin</option>
+      <option value="mrv">MRV</option>
     </select>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal()">Cancel</button>
@@ -196,7 +204,7 @@ const SUPABASE_KEY='sb_publishable_QIspXCKzBSfKJGHuDopv3A_Q72Td91p';
 const{createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 const PEOPLE=[{id:'mark',name:'Mark',initials:'MZ',av:'av-mark'},{id:'shea',name:'Shea',initials:'SA',av:'av-shea'},{id:'michelle',name:'Michelle',initials:'MZ',av:'av-michelle'}];
-const TAG_META={broker:{label:'Brokerage',cls:'tag-broker'},opco:{label:'Operating co',cls:'tag-opco'},retail:{label:'Retail',cls:'tag-retail'},mrv:{label:'MRV',cls:'tag-mrv'},palm:{label:'Palm oil',cls:'tag-palm'},admin:{label:'Admin',cls:'tag-admin'}};
+const TAG_META={fundraising:{label:'Fundraising/Investors',cls:'tag-fundraising'},palm:{label:'Palm oil',cls:'tag-palm'},tuna:{label:'Tuna',cls:'tag-tuna'},aquaculture:{label:'Aquaculture',cls:'tag-aquaculture'},cattle:{label:'Cattle',cls:'tag-cattle'},pork:{label:'Pork',cls:'tag-pork'},pipeline:{label:'Other pipeline',cls:'tag-pipeline'},admin:{label:'RRP Mgmt & Admin',cls:'tag-admin'},mrv:{label:'MRV',cls:'tag-mrv'}};
 let state={tasks:{mark:[],shea:[],michelle:[]},notes:{mark:'',shea:'',michelle:''},archive:[]};
 let view='board',modalMode='add',modalPerson=null,modalTaskId=null,archiveOpen={},noteTimers={};
 function todayISO(){return new Date().toISOString().slice(0,10);}
@@ -220,8 +228,8 @@ function renderArchive(){const c=document.getElementById('archiveContent');c.inn
 function setView(v){view=v;document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',['board','huddle','archive'][i]===v));document.getElementById('view-board').style.display=v==='board'?'':'none';document.getElementById('view-huddle').style.display=v==='huddle'?'':'none';document.getElementById('view-archive').style.display=v==='archive'?'':'none';if(v==='huddle')renderHuddle();if(v==='archive')renderArchive();}
 async function toggleDone(person,id,done){await updateTask(id,{done});renderBoard();}
 function debouncedNote(person,value){state.notes[person]=value;clearTimeout(noteTimers[person]);noteTimers[person]=setTimeout(()=>saveNoteToDb(person,value),900);}
-function openAddModal(person){modalMode='add';modalPerson=person;modalTaskId=null;const p=PEOPLE.find(x=>x.id===person);document.getElementById('modalTitle').textContent='Add task for '+p.name;document.getElementById('modalSaveBtn').textContent='Add task';document.getElementById('taskInput').value='';document.getElementById('noteInput').value='';document.getElementById('tagSelect').value='broker';document.getElementById('taskModal').classList.add('open');setTimeout(()=>document.getElementById('taskInput').focus(),80);}
-function openEditModal(person,id){modalMode='edit';modalPerson=person;modalTaskId=id;const t=(state.tasks[person]||[]).find(t=>t.id===id);if(!t)return;document.getElementById('modalTitle').textContent='Edit task';document.getElementById('modalSaveBtn').textContent='Save';document.getElementById('taskInput').value=t.text;document.getElementById('noteInput').value=t.note||'';document.getElementById('tagSelect').value=t.tag||'broker';document.getElementById('taskModal').classList.add('open');setTimeout(()=>document.getElementById('taskInput').focus(),80);}
+function openAddModal(person){modalMode='add';modalPerson=person;modalTaskId=null;const p=PEOPLE.find(x=>x.id===person);document.getElementById('modalTitle').textContent='Add task for '+p.name;document.getElementById('modalSaveBtn').textContent='Add task';document.getElementById('taskInput').value='';document.getElementById('noteInput').value='';document.getElementById('tagSelect').value='fundraising';document.getElementById('taskModal').classList.add('open');setTimeout(()=>document.getElementById('taskInput').focus(),80);}
+function openEditModal(person,id){modalMode='edit';modalPerson=person;modalTaskId=id;const t=(state.tasks[person]||[]).find(t=>t.id===id);if(!t)return;document.getElementById('modalTitle').textContent='Edit task';document.getElementById('modalSaveBtn').textContent='Save';document.getElementById('taskInput').value=t.text;document.getElementById('noteInput').value=t.note||'';document.getElementById('tagSelect').value=t.tag||'fundraising';document.getElementById('taskModal').classList.add('open');setTimeout(()=>document.getElementById('taskInput').focus(),80);}
 function closeModal(){document.getElementById('taskModal').classList.remove('open');modalPerson=null;modalTaskId=null;}
 async function saveTask(){const text=document.getElementById('taskInput').value.trim();if(!text)return;const note=document.getElementById('noteInput').value.trim();const tag=document.getElementById('tagSelect').value;const mp=modalPerson,mt=modalTaskId,mm=modalMode;closeModal();if(mm==='add'){await addTask(mp,text,note,tag);}else{await updateTask(mt,{text,note,tag});renderBoard();}}
 function confirmDelete(id){if(confirm('Remove this task?'))deleteTask(id);}
