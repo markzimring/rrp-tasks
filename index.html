@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RRP Daily Tasks</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#ffffff;--bg2:#f7f7f5;--bg3:#f0efe9;
+  --text:#1a1a18;--text2:#6b6b66;--text3:#9b9b94;
+  --border:rgba(0,0,0,0.10);--border2:rgba(0,0,0,0.18);
+  --radius:8px;--radius-lg:12px;
+  --blue-bg:#E6F1FB;--blue-tx:#0C447C;
+  --green-bg:#EAF3DE;--green-tx:#27500A;
+  --amber-bg:#FAEEDA;--amber-tx:#633806;
+  --purple-bg:#EEEDFE;--purple-tx:#3C3489;
+  --gray-bg:#F1EFE8;--gray-tx:#5F5E5A;
+  --coral-bg:#FAECE7;--coral-tx:#993C1D;
+  --red-bg:#FCEBEB;--red-tx:#A32D2D;
+  --success:#1D9E75;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1c1c1a;--bg2:#242422;--bg3:#2a2a28;
+  --text:#f0efe9;--text2:#a0a09a;--text3:#6b6b64;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.16);
+  --blue-bg:#0c2d52;--blue-tx:#85B7EB;
+  --green-bg:#1a3308;--green-tx:#97C459;
+  --amber-bg:#3d2204;--amber-tx:#EF9F27;
+  --purple-bg:#251f5c;--purple-tx:#AFA9EC;
+  --gray-bg:#2c2c2a;--gray-tx:#B4B2A9;
+  --coral-bg:#4a1b0c;--coral-tx:#F0997B;
+  --red-bg:#3d1010;--red-tx:#F09595;
+}}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;}
+.app{max-width:1020px;margin:0 auto;padding:1.5rem 1rem 4rem;}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px;}
+.brand .title{font-size:16px;font-weight:600;color:var(--text);}
+.brand .subtitle{font-size:12px;color:var(--text3);margin-top:1px;}
+.nav{display:flex;gap:3px;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:3px;}
+.nav-btn{font-size:12px;padding:5px 14px;border-radius:6px;border:none;background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;}
+.nav-btn.active{background:var(--bg);color:var(--text);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+.status-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px;}
+.sync-pill{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);}
+.sync-dot.live{background:var(--success);}
+.sync-dot.syncing{background:#EF9F27;}
+.rollover-btn{font-size:12px;padding:5px 12px;border-radius:var(--radius);border:0.5px solid var(--border2);background:var(--bg);color:var(--text2);cursor:pointer;font-family:inherit;}
+.rollover-btn:hover{background:var(--bg2);color:var(--text);}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+@media(max-width:680px){.cols{grid-template-columns:1fr;}}
+.col{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px;}
+.col-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
+.av-mark{background:var(--blue-bg);color:var(--blue-tx);}
+.av-shea{background:var(--green-bg);color:var(--green-tx);}
+.av-michelle{background:var(--amber-bg);color:var(--amber-tx);}
+.col-name{font-size:14px;font-weight:500;}
+.col-count{font-size:11px;color:var(--text3);margin-left:auto;}
+.task-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;min-height:4px;}
+.task-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:9px 11px;}
+.task-card:hover{border-color:var(--border2);}
+.task-card.done{opacity:0.42;}
+.task-row{display:flex;align-items:flex-start;gap:8px;}
+.check{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--border2);flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.check:hover{border-color:var(--success);}
+.check.checked{background:var(--success);border-color:var(--success);}
+.check.checked::after{content:'';display:block;width:4px;height:7px;border:1.5px solid #fff;border-left:none;border-top:none;transform:rotate(45deg) translate(-1px,-1px);}
+.task-body{flex:1;min-width:0;}
+.task-text{font-size:13px;color:var(--text);line-height:1.4;}
+.task-card.done .task-text{text-decoration:line-through;color:var(--text3);}
+.task-note{font-size:11px;color:var(--text2);font-style:italic;margin-top:4px;line-height:1.4;}
+.task-foot{display:flex;align-items:center;gap:5px;margin-top:6px;flex-wrap:wrap;}
+.tag{font-size:10px;padding:2px 7px;border-radius:99px;white-space:nowrap;}
+.tag-broker{background:var(--blue-bg);color:var(--blue-tx);}
+.tag-opco{background:var(--green-bg);color:var(--green-tx);}
+.tag-retail{background:var(--purple-bg);color:var(--purple-tx);}
+.tag-mrv{background:var(--amber-bg);color:var(--amber-tx);}
+.tag-palm{background:var(--coral-bg);color:var(--coral-tx);}
+.tag-admin{background:var(--gray-bg);color:var(--gray-tx);}
+.tag-rolled{background:var(--red-bg);color:var(--red-tx);}
+.task-actions{display:flex;gap:2px;flex-shrink:0;}
+.icon-btn{background:transparent;border:none;cursor:pointer;font-size:12px;color:var(--text3);padding:2px 4px;border-radius:4px;line-height:1;font-family:inherit;}
+.icon-btn:hover{color:var(--text2);background:var(--bg2);}
+.col-notes{margin-top:10px;}
+.notes-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;}
+.notes-ta{width:100%;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:7px 9px;font-size:12px;font-family:inherit;color:var(--text);resize:none;height:62px;line-height:1.5;}
+.notes-ta::placeholder{color:var(--text3);}
+.notes-ta:focus{outline:none;border-color:var(--border2);}
+.add-btn{width:100%;background:transparent;border:0.5px dashed var(--border2);border-radius:var(--radius);padding:7px 11px;font-size:12px;color:var(--text3);text-align:left;cursor:pointer;margin-top:8px;font-family:inherit;}
+.add-btn:hover{border-color:var(--text3);color:var(--text2);}
+.section-title{font-size:15px;font-weight:500;margin-bottom:1.25rem;}
+.huddle-person{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px;}
+.huddle-phead{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:0.5px solid var(--border);}
+.huddle-pname{font-size:14px;font-weight:500;}
+.huddle-stats{font-size:12px;color:var(--text3);margin-left:auto;}
+.huddle-note-box{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:8px 10px;font-size:12px;color:var(--text2);font-style:italic;line-height:1.5;margin-bottom:10px;}
+.huddle-task{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border);}
+.huddle-task:last-child{border-bottom:none;}
+.huddle-task-body{flex:1;}
+.huddle-task-text{font-size:13px;color:var(--text);line-height:1.4;}
+.huddle-task-note{font-size:11px;color:var(--text2);font-style:italic;margin-top:3px;}
+.huddle-task.done .huddle-task-text{text-decoration:line-through;color:var(--text3);}
+.archive-day{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden;}
+.archive-day-header{display:flex;align-items:center;gap:8px;padding:12px 14px;cursor:pointer;user-select:none;}
+.archive-day-header:hover{background:var(--bg3);}
+.archive-caret{font-size:10px;color:var(--text3);transition:transform 0.15s;}
+.archive-caret.open{transform:rotate(90deg);}
+.archive-date{font-size:13px;font-weight:500;}
+.archive-summary{font-size:11px;color:var(--text3);margin-left:auto;}
+.archive-body{display:none;padding:0 14px 14px;}
+.archive-body.open{display:block;}
+.archive-person{margin-top:12px;}
+.archive-phead{display:flex;align-items:center;gap:6px;margin-bottom:7px;}
+.archive-pname{font-size:12px;font-weight:500;color:var(--text2);}
+.archive-pnote{font-size:11px;color:var(--text2);font-style:italic;margin-bottom:7px;padding:6px 8px;background:var(--bg);border-radius:var(--radius);border:0.5px solid var(--border);}
+.archive-task{display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border);}
+.archive-task:last-child{border-bottom:none;}
+.archive-task-body{flex:1;}
+.archive-task-text{font-size:12px;color:var(--text);}
+.archive-task-text.done{text-decoration:line-through;color:var(--text3);}
+.archive-task-note{font-size:11px;color:var(--text2);font-style:italic;margin-top:2px;}
+.empty-state{font-size:13px;color:var(--text3);padding:2rem 0;text-align:center;}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:200;align-items:center;justify-content:center;padding:1rem;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--radius-lg);padding:1.25rem;width:100%;max-width:360px;}
+.modal h3{font-size:15px;font-weight:500;margin-bottom:1rem;}
+.field-label{font-size:11px;color:var(--text2);margin-bottom:3px;display:block;}
+.modal input,.modal select,.modal textarea{width:100%;margin-bottom:12px;font-family:inherit;font-size:13px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 10px;color:var(--text);}
+.modal input:focus,.modal select:focus,.modal textarea:focus{outline:none;border-color:var(--text3);}
+.modal textarea{resize:none;height:70px;line-height:1.5;}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;}
+.btn-cancel{font-size:13px;padding:7px 16px;border-radius:var(--radius);border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;}
+.btn-primary{font-size:13px;padding:7px 16px;border-radius:var(--radius);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);cursor:pointer;font-family:inherit;font-weight:500;}
+.btn-primary:hover{background:var(--bg3);}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(8px);background:var(--text);color:var(--bg);font-size:12px;padding:8px 16px;border-radius:99px;opacity:0;transition:all 0.2s;pointer-events:none;white-space:nowrap;z-index:300;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top-bar">
+    <div class="brand">
+      <div class="title">Round River Provisions</div>
+      <div class="subtitle" id="dateStr"></div>
+    </div>
+    <div class="nav">
+      <button class="nav-btn active" onclick="setView('board')">Board</button>
+      <button class="nav-btn" onclick="setView('huddle')">Morning huddle</button>
+      <button class="nav-btn" onclick="setView('archive')">This week</button>
+    </div>
+  </div>
+  <div id="view-board">
+    <div class="status-bar">
+      <div class="sync-pill"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">Connecting...</span></div>
+      <button class="rollover-btn" onclick="confirmRollover()">↻ carry forward incomplete tasks</button>
+    </div>
+    <div class="cols" id="cols"></div>
+  </div>
+  <div id="view-huddle" style="display:none;">
+    <div class="section-title" id="huddleTitle"></div>
+    <div id="huddleContent"></div>
+  </div>
+  <div id="view-archive" style="display:none;">
+    <div class="section-title">This week</div>
+    <div id="archiveContent"></div>
+  </div>
+</div>
+<div class="modal-bg" id="taskModal">
+  <div class="modal">
+    <h3 id="modalTitle">Add task</h3>
+    <label class="field-label">Task</label>
+    <input type="text" id="taskInput" placeholder="What needs to get done?" />
+    <label class="field-label">Note (optional)</label>
+    <textarea id="noteInput" placeholder="Context, blockers, details..."></textarea>
+    <label class="field-label">Category</label>
+    <select id="tagSelect">
+      <option value="broker">Brokerage</option>
+      <option value="opco">Operating co</option>
+      <option value="retail">Retail</option>
+      <option value="mrv">MRV</option>
+      <option value="palm">Palm oil</option>
+      <option value="admin">Admin</option>
+    </select>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" id="modalSaveBtn" onclick="saveTask()">Add task</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const SUPABASE_URL='https://vdxtugkdtqjeefgkayws.supabase.co';
+const SUPABASE_KEY='sb_publishable_QIspXCKzBSfKJGHuDopv3A_Q72Td91p';
+const{createClient}=supabase;
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+const PEOPLE=[{id:'mark',name:'Mark',initials:'MZ',av:'av-mark'},{id:'shea',name:'Shea',initials:'SA',av:'av-shea'},{id:'michelle',name:'Michelle',initials:'MZ',av:'av-michelle'}];
+const TAG_META={broker:{label:'Brokerage',cls:'tag-broker'},opco:{label:'Operating co',cls:'tag-opco'},retail:{label:'Retail',cls:'tag-retail'},mrv:{label:'MRV',cls:'tag-mrv'},palm:{label:'Palm oil',cls:'tag-palm'},admin:{label:'Admin',cls:'tag-admin'}};
+let state={tasks:{mark:[],shea:[],michelle:[]},notes:{mark:'',shea:'',michelle:''},archive:[]};
+let view='board',modalMode='add',modalPerson=null,modalTaskId=null,archiveOpen={},noteTimers={};
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function fmtDate(iso){const d=new Date(iso+'T12:00:00');return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});}
+function fmtShort(iso){const d=new Date(iso+'T12:00:00');return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function setSyncStatus(s){const dot=document.getElementById('syncDot'),lbl=document.getElementById('syncLabel');if(s==='live'){dot.className='sync-dot live';lbl.textContent='Live';}if(s==='syncing'){dot.className='sync-dot syncing';lbl.textContent='Saving...';}if(s==='offline'){dot.className='sync-dot';lbl.textContent='Offline';}}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+async function loadAll(){try{const[tasksRes,notesRes,archiveRes]=await Promise.all([sb.from('tasks').select('*').order('created_at',{ascending:true}),sb.from('notes').select('*'),sb.from('archive').select('*').order('date',{ascending:false}).limit(30)]);if(tasksRes.error)throw tasksRes.error;if(notesRes.error)throw notesRes.error;if(archiveRes.error)throw archiveRes.error;state.tasks={mark:[],shea:[],michelle:[]};(tasksRes.data||[]).forEach(t=>{if(state.tasks[t.person])state.tasks[t.person].push(t);});state.notes={mark:'',shea:'',michelle:''};(notesRes.data||[]).forEach(n=>{state.notes[n.person]=n.content||'';});state.archive=archiveRes.data||[];setSyncStatus('live');renderAll();}catch(e){setSyncStatus('offline');console.error('Load error:',e);}}
+async function addTask(person,text,note,tag){setSyncStatus('syncing');const{data,error}=await sb.from('tasks').insert({id:uid(),person,text,note:note||'',tag,done:false,rolled_over:false,date:todayISO()}).select().single();if(!error&&data){state.tasks[person].push(data);renderBoard();setSyncStatus('live');}else{console.error(error);setSyncStatus('offline');}}
+async function updateTask(id,changes){setSyncStatus('syncing');const{error}=await sb.from('tasks').update(changes).eq('id',id);if(!error){for(const p of PEOPLE){const t=state.tasks[p.id].find(t=>t.id===id);if(t){Object.assign(t,changes);break;}}setSyncStatus('live');}else{console.error(error);setSyncStatus('offline');}}
+async function deleteTask(id){setSyncStatus('syncing');const{error}=await sb.from('tasks').delete().eq('id',id);if(!error){for(const p of PEOPLE){state.tasks[p.id]=state.tasks[p.id].filter(t=>t.id!==id);}renderBoard();setSyncStatus('live');}else{console.error(error);setSyncStatus('offline');}}
+async function saveNoteToDb(person,content){setSyncStatus('syncing');const{error}=await sb.from('notes').upsert({person,content},{onConflict:'person'});if(!error){state.notes[person]=content;setSyncStatus('live');}else{console.error(error);setSyncStatus('offline');}}
+async function rolloverToDb(){setSyncStatus('syncing');const today=todayISO();const archiveTasks=[];const archiveNotes={};const updatePromises=[];PEOPLE.forEach(p=>{const pt=state.tasks[p.id]||[];archiveNotes[p.id]=state.notes[p.id]||'';pt.forEach(t=>{archiveTasks.push({...t,person:p.id});if(!t.done){updatePromises.push(sb.from('tasks').update({rolled_over:true}).eq('id',t.id));}});});await Promise.all(updatePromises);const existing=state.archive.find(a=>a.date===today);if(existing){const merged=[...(existing.tasks_json||[]),...archiveTasks.filter(t=>t.done)];await sb.from('archive').update({tasks_json:merged,notes_json:archiveNotes}).eq('date',today);}else{await sb.from('archive').insert({date:today,tasks_json:archiveTasks.filter(t=>t.done),notes_json:archiveNotes});}const clearNotes=PEOPLE.map(p=>sb.from('notes').upsert({person:p.id,content:''},{onConflict:'person'}));await Promise.all(clearNotes);await loadAll();showToast('Rolled over — completed tasks archived');setSyncStatus('live');}
+function subscribeRealtime(){sb.channel('rrp-live').on('postgres_changes',{event:'*',schema:'public',table:'tasks'},()=>loadAll()).on('postgres_changes',{event:'*',schema:'public',table:'notes'},()=>loadAll()).on('postgres_changes',{event:'*',schema:'public',table:'archive'},()=>{if(view==='archive')renderArchive();}).subscribe();}
+function renderAll(){renderBoard();if(view==='huddle')renderHuddle();if(view==='archive')renderArchive();}
+function renderBoard(){const cols=document.getElementById('cols');cols.innerHTML='';PEOPLE.forEach(p=>{const pt=state.tasks[p.id]||[];const doneCount=pt.filter(t=>t.done).length;const col=document.createElement('div');col.className='col';let taskHTML='';pt.forEach(t=>{const tm=TAG_META[t.tag]||TAG_META.admin;taskHTML+=`<div class="task-card${t.done?' done':''}" id="tc-${t.id}"><div class="task-row"><div class="check${t.done?' checked':''}" onclick="toggleDone('${p.id}','${t.id}',${!t.done})"></div><div class="task-body"><div class="task-text">${escHtml(t.text)}</div>${t.note?`<div class="task-note">${escHtml(t.note)}</div>`:''}</div><div class="task-actions"><button class="icon-btn" onclick="openEditModal('${p.id}','${t.id}')" title="Edit">✎</button><button class="icon-btn" onclick="confirmDelete('${t.id}')" title="Remove">✕</button></div></div><div class="task-foot"><span class="tag ${tm.cls}">${tm.label}</span>${t.rolled_over?'<span class="tag tag-rolled">carried forward</span>':''}</div></div>`;});col.innerHTML=`<div class="col-header"><div class="avatar ${p.av}">${p.initials}</div><span class="col-name">${p.name}</span><span class="col-count">${doneCount}/${pt.length}</span></div><div class="task-list">${taskHTML}</div><div class="col-notes"><div class="notes-label">notes</div><textarea class="notes-ta" placeholder="Daily notes for ${p.name}..." onInput="debouncedNote('${p.id}',this.value)">${escHtml(state.notes[p.id]||'')}</textarea></div><button class="add-btn" onclick="openAddModal('${p.id}')">+ add task</button>`;cols.appendChild(col);});}
+function renderHuddle(){document.getElementById('huddleTitle').textContent='Morning huddle — '+fmtDate(todayISO());const c=document.getElementById('huddleContent');c.innerHTML='';PEOPLE.forEach(p=>{const pt=state.tasks[p.id]||[];const open=pt.filter(t=>!t.done);const done=pt.filter(t=>t.done);const note=state.notes[p.id]||'';const div=document.createElement('div');div.className='huddle-person';let html=`<div class="huddle-phead"><div class="avatar ${p.av}">${p.initials}</div><span class="huddle-pname">${p.name}</span><span class="huddle-stats">${done.length} done · ${open.length} open</span></div>`;if(note)html+=`<div class="huddle-note-box">${escHtml(note)}</div>`;if(pt.length===0)html+=`<div style="font-size:13px;color:var(--text3);">No tasks yet</div>`;[...open,...done].forEach(t=>{const tm=TAG_META[t.tag]||TAG_META.admin;html+=`<div class="huddle-task${t.done?' done':''}"><div class="check${t.done?' checked':''}" onclick="toggleDone('${p.id}','${t.id}',${!t.done});renderHuddle();"></div><div class="huddle-task-body"><div class="huddle-task-text">${escHtml(t.text)}</div>${t.note?`<div class="huddle-task-note">${escHtml(t.note)}</div>`:''}</div><span class="tag ${tm.cls}">${tm.label}</span></div>`;});div.innerHTML=html;c.appendChild(div);});}
+function renderArchive(){const c=document.getElementById('archiveContent');c.innerHTML='';if(!state.archive.length){c.innerHTML='<div class="empty-state">Nothing archived yet. Use "carry forward incomplete tasks" to archive completed work.</div>';return;}state.archive.forEach(day=>{const tasks=day.tasks_json||[];const notes=day.notes_json||{};const isOpen=archiveOpen[day.date]!==false;const doneCount=tasks.filter(t=>t.done).length;const div=document.createElement('div');div.className='archive-day';let body='';PEOPLE.forEach(p=>{const pt=tasks.filter(t=>t.person===p.id);const pnote=notes[p.id]||'';if(!pt.length&&!pnote)return;body+=`<div class="archive-person"><div class="archive-phead"><div class="avatar ${p.av}" style="width:22px;height:22px;font-size:9px;">${p.initials}</div><span class="archive-pname">${p.name}</span></div>${pnote?`<div class="archive-pnote">${escHtml(pnote)}</div>`:''}`;pt.forEach(t=>{const tm=TAG_META[t.tag]||TAG_META.admin;body+=`<div class="archive-task"><span class="tag ${tm.cls}">${tm.label}</span><div class="archive-task-body"><div class="archive-task-text${t.done?' done':''}">${escHtml(t.text)}</div>${t.note?`<div class="archive-task-note">${escHtml(t.note)}</div>`:''}</div></div>`;});body+='</div>';});div.innerHTML=`<div class="archive-day-header" onclick="toggleArchiveDay('${day.date}')"><span class="archive-caret${isOpen?' open':''}">▶</span><span class="archive-date">${fmtShort(day.date)}</span><span class="archive-summary">${doneCount} completed</span></div><div class="archive-body${isOpen?' open':''}">${body||'<div style="font-size:13px;color:var(--text3);">No completed tasks archived.</div>'}</div>`;c.appendChild(div);});}
+function setView(v){view=v;document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',['board','huddle','archive'][i]===v));document.getElementById('view-board').style.display=v==='board'?'':'none';document.getElementById('view-huddle').style.display=v==='huddle'?'':'none';document.getElementById('view-archive').style.display=v==='archive'?'':'none';if(v==='huddle')renderHuddle();if(v==='archive')renderArchive();}
+async function toggleDone(person,id,done){await updateTask(id,{done});renderBoard();}
+function debouncedNote(person,value){state.notes[person]=value;clearTimeout(noteTimers[person]);noteTimers[person]=setTimeout(()=>saveNoteToDb(person,value),900);}
+function openAddModal(person){modalMode='add';modalPerson=person;modalTaskId=null;const p=PEOPLE.find(x=>x.id===person);document.getElementById('modalTitle').textContent='Add task for '+p.name;document.getElementById('modalSaveBtn').textContent='Add task';document.getElementById('taskInput').value='';document.getElementById('noteInput').value='';document.getElementById('tagSelect').value='broker';document.getElementById('taskModal').classList.add('open');setTimeout(()=>document.getElementById('taskInput').focus(),80);}
+function openEditModal(person,id){modalMode='edit';modalPerson=person;modalTaskId=id;const t=(state.tasks[person]||[]).find(t=>t.id===id);if(!t)return;document.getElementById('modalTitle').textContent='Edit task';document.getElementById('modalSaveBtn').textContent='Save';document.getElementById('taskInput').value=t.text;document.getElementById('noteInput').value=t.note||'';document.getElementById('tagSelect').value=t.tag||'broker';document.getElementById('taskModal').classList.add('open');setTimeout(()=>document.getElementById('taskInput').focus(),80);}
+function closeModal(){document.getElementById('taskModal').classList.remove('open');modalPerson=null;modalTaskId=null;}
+async function saveTask(){const text=document.getElementById('taskInput').value.trim();if(!text)return;const note=document.getElementById('noteInput').value.trim();const tag=document.getElementById('tagSelect').value;const mp=modalPerson,mt=modalTaskId,mm=modalMode;closeModal();if(mm==='add'){await addTask(mp,text,note,tag);}else{await updateTask(mt,{text,note,tag});renderBoard();}}
+function confirmDelete(id){if(confirm('Remove this task?'))deleteTask(id);}
+function confirmRollover(){const hasDone=PEOPLE.some(p=>(state.tasks[p.id]||[]).some(t=>t.done));if(!hasDone){showToast('No completed tasks to archive yet');return;}if(confirm('Archive completed tasks and carry forward incomplete ones?'))rolloverToDb();}
+function toggleArchiveDay(date){archiveOpen[date]=archiveOpen[date]===false?true:false;renderArchive();}
+document.getElementById('dateStr').textContent=fmtDate(todayISO());
+document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter')saveTask();});
+document.getElementById('taskModal').addEventListener('click',e=>{if(e.target===document.getElementById('taskModal'))closeModal();});
+loadAll();
+subscribeRealtime();
+</script>
+</body>
+</html>
