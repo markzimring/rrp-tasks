@@ -204,7 +204,7 @@ const SUPABASE_KEY='sb_publishable_QIspXCKzBSfKJGHuDopv3A_Q72Td91p';
 const{createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 const PEOPLE=[{id:'mark',name:'Mark',initials:'MZ',av:'av-mark'},{id:'shea',name:'Shea',initials:'SA',av:'av-shea'},{id:'michelle',name:'Michelle',initials:'MZ',av:'av-michelle'}];
-const TAG_META={fundraising:{label:'Fundraising/Investors',cls:'tag-fundraising'},palm:{label:'Palm oil',cls:'tag-palm'},tuna:{label:'Tuna',cls:'tag-tuna'},aquaculture:{label:'Aquaculture',cls:'tag-aquaculture'},cattle:{label:'Cattle',cls:'tag-cattle'},pork:{label:'Pork',cls:'tag-pork'},pipeline:{label:'Other pipeline',cls:'tag-pipeline'},admin:{label:'RRP Mgmt & Admin',cls:'tag-admin'},mrv:{label:'MRV',cls:'tag-mrv'}};
+const TAG_META={fundraising:{label:'Fundraising/Investors',cls:'tag-fundraising'},palm:{label:'Palm oil',cls:'tag-palm'},tuna:{label:'Tuna',cls:'tag-tuna'},aquaculture:{label:'Aquaculture',cls:'tag-aquaculture'},cattle:{label:'Cattle',cls:'tag-cattle'},retailer:{label:'Retailer Engagement',cls:'tag-retailer'}pork:{label:'Pork',cls:'tag-pork'},pipeline:{label:'Other pipeline',cls:'tag-pipeline'},admin:{label:'RRP Mgmt & Admin',cls:'tag-admin'},mrv:{label:'MRV',cls:'tag-mrv'}};
 let state={tasks:{mark:[],shea:[],michelle:[]},notes:{mark:'',shea:'',michelle:''},archive:[]};
 let view='board',modalMode='add',modalPerson=null,modalTaskId=null,archiveOpen={},noteTimers={};
 function todayISO(){return new Date().toISOString().slice(0,10);}
