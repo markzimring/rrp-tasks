@@ -207,7 +207,7 @@ const SUPABASE_URL='https://vdxtugkdtqjeefgkayws.supabase.co';
 const SUPABASE_KEY='sb_publishable_QIspXCKzBSfKJGHuDopv3A_Q72Td91p';
 const{createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
-const PEOPLE=[{id:'mark',name:'Mark',initials:'MZ',av:'av-mark'},{id:'shea',name:'Shea',initials:'SA',av:'av-shea'},{id:'michelle',name:'Michelle',initials:'MZ',av:'av-michelle'}];
+const PEOPLE=[{id:'mark',name:'Mark',initials:'MZ',av:'av-mark'},{id:'shea',name:'Shea',initials:'SA',av:'av-shea'},{id:'michelle',name:'Michelle',initials:'MK',av:'av-michelle'}];
 const TAG_META={
   fundraising:{label:'Fundraising/Investors',cls:'tag-fundraising'},
   retailer:{label:'Retailer Engagement',cls:'tag-retailer'},
@@ -249,7 +249,7 @@ function closeModal(){document.getElementById('taskModal').classList.remove('ope
 async function saveTask(){const text=document.getElementById('taskInput').value.trim();if(!text)return;const note=document.getElementById('noteInput').value.trim();const tag=document.getElementById('tagSelect').value;const mp=modalPerson,mt=modalTaskId,mm=modalMode;closeModal();if(mm==='add'){await addTask(mp,text,note,tag);}else{await updateTask(mt,{text,note,tag});renderBoard();}}
 function confirmDelete(id){if(confirm('Remove this task?'))deleteTask(id);}
 function confirmRollover(){const hasDone=PEOPLE.some(p=>(state.tasks[p.id]||[]).some(t=>t.done));if(!hasDone){showToast('No completed tasks to archive yet');return;}if(confirm('Archive completed tasks and carry forward incomplete ones?'))rolloverToDb();}
-function toggleArchiveDay(date){archiveOpen[date]=archiveOpen[date]===false?true:false;renderArchive();}
+function toggleArchiveDay(date){archiveOpen[date]=!archiveOpen[date];renderArchive();}
 document.getElementById('dateStr').textContent=fmtDate(todayISO());
 document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter')saveTask();});
 document.getElementById('taskModal').addEventListener('click',e=>{if(e.target===document.getElementById('taskModal'))closeModal();});
