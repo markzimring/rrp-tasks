@@ -20,6 +20,7 @@
   --coral-bg:#FAECE7;--coral-tx:#993C1D;
   --red-bg:#FCEBEB;--red-tx:#A32D2D;
   --teal-bg:#E1F5EE;--teal-tx:#085041;
+  --orange-bg:#FFF0E0;--orange-tx:#8A4500;
   --success:#1D9E75;
 }
 @media(prefers-color-scheme:dark){:root{
@@ -34,6 +35,7 @@
   --coral-bg:#4a1b0c;--coral-tx:#F0997B;
   --red-bg:#3d1010;--red-tx:#F09595;
   --teal-bg:#085041;--teal-tx:#9FE1CB;
+  --orange-bg:#3d2200;--orange-tx:#FFB366;
 }}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;}
 .app{max-width:1020px;margin:0 auto;padding:1.5rem 1rem 4rem;}
@@ -84,6 +86,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tag-pipeline{background:var(--green-bg);color:var(--green-tx);}
 .tag-admin{background:var(--gray-bg);color:var(--gray-tx);}
 .tag-mrv{background:var(--blue-bg);color:var(--blue-tx);}
+.tag-retailer{background:var(--orange-bg);color:var(--orange-tx);}
 .tag-rolled{background:var(--red-bg);color:var(--red-tx);}
 .task-actions{display:flex;gap:2px;flex-shrink:0;}
 .icon-btn{background:transparent;border:none;cursor:pointer;font-size:12px;color:var(--text3);padding:2px 4px;border-radius:4px;line-height:1;font-family:inherit;}
@@ -182,6 +185,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <label class="field-label">Category</label>
     <select id="tagSelect">
       <option value="fundraising">Fundraising/Investors</option>
+      <option value="retailer">Retailer Engagement</option>
       <option value="palm">Palm oil</option>
       <option value="tuna">Tuna</option>
       <option value="aquaculture">Aquaculture</option>
@@ -204,7 +208,18 @@ const SUPABASE_KEY='sb_publishable_QIspXCKzBSfKJGHuDopv3A_Q72Td91p';
 const{createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 const PEOPLE=[{id:'mark',name:'Mark',initials:'MZ',av:'av-mark'},{id:'shea',name:'Shea',initials:'SA',av:'av-shea'},{id:'michelle',name:'Michelle',initials:'MZ',av:'av-michelle'}];
-const TAG_META={fundraising:{label:'Fundraising/Investors',cls:'tag-fundraising'},palm:{label:'Palm oil',cls:'tag-palm'},tuna:{label:'Tuna',cls:'tag-tuna'},aquaculture:{label:'Aquaculture',cls:'tag-aquaculture'},cattle:{label:'Cattle',cls:'tag-cattle'},retailer:{label:'Retailer Engagement',cls:'tag-retailer'}pork:{label:'Pork',cls:'tag-pork'},pipeline:{label:'Other pipeline',cls:'tag-pipeline'},admin:{label:'RRP Mgmt & Admin',cls:'tag-admin'},mrv:{label:'MRV',cls:'tag-mrv'}};
+const TAG_META={
+  fundraising:{label:'Fundraising/Investors',cls:'tag-fundraising'},
+  retailer:{label:'Retailer Engagement',cls:'tag-retailer'},
+  palm:{label:'Palm oil',cls:'tag-palm'},
+  tuna:{label:'Tuna',cls:'tag-tuna'},
+  aquaculture:{label:'Aquaculture',cls:'tag-aquaculture'},
+  cattle:{label:'Cattle',cls:'tag-cattle'},
+  pork:{label:'Pork',cls:'tag-pork'},
+  pipeline:{label:'Other pipeline',cls:'tag-pipeline'},
+  admin:{label:'RRP Mgmt & Admin',cls:'tag-admin'},
+  mrv:{label:'MRV',cls:'tag-mrv'}
+};
 let state={tasks:{mark:[],shea:[],michelle:[]},notes:{mark:'',shea:'',michelle:''},archive:[]};
 let view='board',modalMode='add',modalPerson=null,modalTaskId=null,archiveOpen={},noteTimers={};
 function todayISO(){return new Date().toISOString().slice(0,10);}
